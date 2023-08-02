@@ -25,7 +25,7 @@ args = parser.parse_args()
 try:
     try:
         try:
-            from model.RIFE_HDv2 import Model
+            from rife_model.RIFE_HDv2 import Model
             model = Model()
             model.load_model(args.modelDir, -1)
             print("Loaded v2.x HD model.")
@@ -35,12 +35,12 @@ try:
             model.load_model(args.modelDir, -1)
             print("Loaded v3.x HD model.")
     except:
-        from model.RIFE_HD import Model
+        from rife_model.RIFE_HD import Model
         model = Model()
         model.load_model(args.modelDir, -1)
         print("Loaded v1.x HD model")
 except:
-    from model.RIFE import Model
+    from rife_model.RIFE import Model
     model = Model()
     model.load_model(args.modelDir, -1)
     print("Loaded ArXiv-RIFE model")

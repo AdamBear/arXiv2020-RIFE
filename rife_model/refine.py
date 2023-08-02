@@ -3,8 +3,7 @@ import torch.nn as nn
 import numpy as np
 import torch.optim as optim
 import itertools
-from model.warplayer import warp
-from torch.nn.parallel import DistributedDataParallel as DDP
+from rife_model.warplayer import warp
 import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,14 +36,14 @@ c = 16
 class Contextnet(nn.Module):
     def __init__(self):
         super(Contextnet, self).__init__()
-        self.conv1 = Conv2(3, c, 1)
+        self.conv1 = Conv2(3, c)
         self.conv2 = Conv2(c, 2*c)
         self.conv3 = Conv2(2*c, 4*c)
         self.conv4 = Conv2(4*c, 8*c)
     
     def forward(self, x, flow):
         x = self.conv1(x)
-        # flow = F.interpolate(flow, scale_factor=0.5, mode="bilinear", align_corners=False, recompute_scale_factor=False) * 0.5
+        flow = F.interpolate(flow, scale_factor=0.5, mode="bilinear", align_corners=False, recompute_scale_factor=False) * 0.5
         f1 = warp(x, flow)        
         x = self.conv2(x)
         flow = F.interpolate(flow, scale_factor=0.5, mode="bilinear", align_corners=False, recompute_scale_factor=False) * 0.5
@@ -60,7 +59,7 @@ class Contextnet(nn.Module):
 class Unet(nn.Module):
     def __init__(self):
         super(Unet, self).__init__()
-        self.down0 = Conv2(17, 2*c, 1)
+        self.down0 = Conv2(17, 2*c)
         self.down1 = Conv2(4*c, 4*c)
         self.down2 = Conv2(8*c, 8*c)
         self.down3 = Conv2(16*c, 16*c)
@@ -68,7 +67,7 @@ class Unet(nn.Module):
         self.up1 = deconv(16*c, 4*c)
         self.up2 = deconv(8*c, 2*c)
         self.up3 = deconv(4*c, c)
-        self.conv = nn.Conv2d(c, 3, 3, 2, 1)
+        self.conv = nn.Conv2d(c, 3, 3, 1, 1)
 
     def forward(self, img0, img1, warped_img0, warped_img1, mask, flow, c0, c1):
         s0 = self.down0(torch.cat((img0, img1, warped_img0, warped_img1, mask, flow), 1))
